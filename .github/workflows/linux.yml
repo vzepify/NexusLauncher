@@ -1,0 +1,49 @@
+name: Build Nexus Launcher (Linux)
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake \
+            qt6-base-dev qt6-base-dev-tools \
+            unzip
+
+      - name: Configure
+        working-directory: LinuxNexusLauncher
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        working-directory: LinuxNexusLauncher
+        run: cmake --build build -j2
+
+      - name: Package
+        run: |
+          mkdir -p dist/NexusLauncher
+          cp LinuxNexusLauncher/build/NexusLauncher dist/NexusLauncher/
+          cp LinuxNexusLauncher/nexus-launcher.desktop dist/NexusLauncher/
+          tar -C dist -czf NexusLauncher-linux-x86_64.tar.gz NexusLauncher
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NexusLauncher-linux-x86_64
+          path: NexusLauncher-linux-x86_64.tar.gz
+
+      - name: Upload release asset
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: NexusLauncher-linux-x86_64.tar.gz

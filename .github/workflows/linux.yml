@@ -1,49 +1,106 @@
-name: Build Nexus Launcher (Linux)
+  test-linux-launcher:
+    name: Test Linux Launcher
+    needs: build-linux
+    runs-on: ubuntu-24.04
 
-on:
-  workflow_dispatch:
-  push:
-    tags:
-      - "v*"
-
-jobs:
-  build-linux:
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install runtime dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential cmake \
-            qt6-base-dev qt6-base-dev-tools \
-            unzip
+            xvfb \
+            libxcb-xinerama0 \
+            libxcb-cursor0 \
+            libxkbcommon-x11-0
 
-      - name: Configure
-        working-directory: LinuxNexusLauncher
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Download Linux build
+        uses: actions/download-artifact@v4
+        with:
+          name: NexusLauncher-linux-x64
+          path: artifact
 
-      - name: Build
-        working-directory: LinuxNexusLauncher
-        run: cmake --build build -j2
-
-      - name: Package
+      - name: Extract launcher
         run: |
-          mkdir -p dist/NexusLauncher
-          cp LinuxNexusLauncher/build/NexusLauncher dist/NexusLauncher/
-          cp LinuxNexusLauncher/nexus-launcher.desktop dist/NexusLauncher/
-          tar -C dist -czf NexusLauncher-linux-x86_64.tar.gz NexusLauncher
+          mkdir -p launcher
+          tar -xzf artifact/NexusLauncher-linux-x64.tar.gz -C launcher
+          chmod +x launcher/NexusLauncher
 
-      - name: Upload artifact
+      - name: Launch Nexus under virtual display
+        env:
+          QT_QPA_PLATFORM: xcb
+          DISPLAY: :99
+        run: |
+          set -o pipefail
+
+          echo "Starting virtual X server..."
+          Xvfb :99 -screen 0 1280x720x24 > xvfb.log 2>&1 &
+          XVFB_PID=$!
+
+          cleanup() {
+            kill "$XVFB_PID" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          sleep 2
+
+          if ! kill -0 "$XVFB_PID" 2>/dev/null; then
+            echo "::error::Xvfb failed to start"
+            cat xvfb.log
+            exit 1
+          fi
+
+          echo "Starting Nexus Launcher..."
+
+          set +e
+          timeout --preserve-status --signal=TERM 20s \
+            ./launcher/NexusLauncher \
+            > nexus_stdout.log 2> nexus_stderr.log
+
+          EXIT_CODE=$?
+          set -e
+
+          echo "Nexus exit code: $EXIT_CODE"
+
+          echo "===== Nexus stdout ====="
+          cat nexus_stdout.log || true
+
+          echo "===== Nexus stderr ====="
+          cat nexus_stderr.log || true
+
+          echo "===== Xvfb log ====="
+          cat xvfb.log || true
+
+          case "$EXIT_CODE" in
+            0)
+              echo "Nexus exited cleanly."
+              ;;
+            124)
+              echo "Nexus stayed running for the full 20-second test."
+              echo "Startup test passed."
+              ;;
+            134)
+              echo "::error::Nexus aborted/crashed (exit code 134)."
+              exit 1
+              ;;
+            139)
+              echo "::error::Nexus crashed with a segmentation fault (exit code 139)."
+              exit 1
+              ;;
+            *)
+              echo "::error::Nexus failed during startup (exit code $EXIT_CODE)."
+              exit 1
+              ;;
+          esac
+
+      - name: Upload startup logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: NexusLauncher-linux-x86_64
-          path: NexusLauncher-linux-x86_64.tar.gz
-
-      - name: Upload release asset
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: NexusLauncher-linux-x86_64.tar.gz
+          name: NexusLauncher-linux-startup-logs
+          path: |
+            nexus_stdout.log
+            nexus_stderr.log
+            xvfb.log

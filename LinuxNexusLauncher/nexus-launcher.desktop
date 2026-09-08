@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Nexus Launcher
+Comment=Launch S1X, IW6X and IW4X through Nexus Launcher
+Exec=NexusLauncher
+Icon=nexus_launcher
+Terminal=false
+Categories=Game;
+StartupNotify=true

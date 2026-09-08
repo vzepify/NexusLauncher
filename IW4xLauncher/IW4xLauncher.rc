@@ -1,0 +1,79 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+#include "afxres.h"
+#undef APSTUDIO_READONLY_SYMBOLS
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+// Icon
+//   The app icon is doubly referenced: once as IDR_MAINFRAME (used by
+//   CWinApp for the taskbar/alt-tab icon) and once as IDI_APP_ICON
+//   (used explicitly by CMainDlg for the window icon).
+
+IDR_MAINFRAME           ICON                    "res\\IW4xLauncher.ico"
+IDI_APP_ICON             ICON                    "res\\IW4xLauncher.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+// Embedded launcher artwork
+
+IDR_IMG_BG_S1X           RCDATA                  "res\\background_s1x.jpg"
+IDR_IMG_BG_IW6X          RCDATA                  "res\\background_iw6x.jpg"
+IDR_IMG_BG_IW4X          RCDATA                  "res\\background_iw4x.jpg"
+IDR_IMG_S1X              RCDATA                  "res\\s1x.png"
+IDR_IMG_IW6X             RCDATA                  "res\\iw6x.png"
+IDR_IMG_IW4X             RCDATA                  "res\\iw4x.png"
+IDR_IMG_HUB              RCDATA                  "res\\hub.png"
+IDR_IMG_NEXUS_ASSET      RCDATA                  "res\\nexus_launcher_asset.png"
+IDR_IMG_SETTINGS         RCDATA                  "res\\settings.png"
+
+/////////////////////////////////////////////////////////////////////////////
+// Dialog
+//   Fully borderless - no caption, no system menu, no resize border.
+//   All chrome (title bar, sidebar, buttons) is custom drawn in MainDlg.cpp.
+//   The size below is nominal; MainDlg resizes itself to exact pixel
+//   dimensions (1200x720) in OnInitDialog to avoid dialog-unit rounding.
+
+IDD_IW4XLAUNCHER_DIALOG DIALOGEX 0, 0, 600, 360
+STYLE DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN
+EXSTYLE WS_EX_APPWINDOW
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+END
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+// TEXTINCLUDE
+//
+1 TEXTINCLUDE
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE
+BEGIN
+    "\r\n"
+    "\0"
+END
+#endif    // APSTUDIO_INVOKED
+
+/////////////////////////////////////////////////////////////////////////////
+// String Table
+
+STRINGTABLE
+BEGIN
+    IDR_MAINFRAME           "IW4x Launcher"
+END
+
+#endif    // English (United States) resources
